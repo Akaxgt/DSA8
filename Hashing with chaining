@@ -1,79 +1,163 @@
-#include<bits/stdc++.h>
-using namespace std;
- 
-class Hash
-{
-    int BUCKET;    
- 
-    list<int> *table;
-public:
-    Hash(int V);  
- 
-   
-    void insertItem(int x);
- 
-   
-    void deleteItem(int key);
- 
-    
-    int hashFunction(int x) {
-        return (x % BUCKET);
-    }
- 
-    void displayHash();
-};
- 
-Hash::Hash(int b)
-{
-    this->BUCKET = b;
-    table = new list<int>[BUCKET];
-}
- 
-void Hash::insertItem(int key)
-{
-    int index = hashFunction(key);
-    table[index].push_back(key);
-}
- 
-void Hash::deleteItem(int key)
-{
-  
-  int index = hashFunction(key);
- 
-  
-  list <int> :: iterator i;
-  for (i = table[index].begin();
-           i != table[index].end(); i++) {
-    if (*i == key)
-      break;
-  }
- 
- 
-  if (i != table[index].end())
-    table[index].erase(i);
-}
+#include <iostream>
+#define ll long long int
 
-void Hash::displayHash() {
-  for (int i = 0; i < BUCKET; i++) {
-    cout << i;
-    for (auto x : table[i])
-      cout << " --> " << x;
-    cout << endl;
-  }
-}
- 
+using namespace std;
+
+
+template <typename T>
+class node
+{
+public:
+	string key;
+	T value;
+	node *next;
+
+	node(string key, T value) 
+	{
+		this->key = key;
+		this->value = value;
+		this->next = NULL;
+	}
+	node(node &obj) 
+	{
+		this->key = obj.key;
+		this->value = obj.value;
+		this->next = NULL;
+	}
+
+	~node() 
+	{
+		node *head = this;
+		while (head != NULL)
+		{
+			node *currNode = head;
+			head = head->next;
+			delete currNode;
+		}
+	}
+};
+
+
+template <typename T>
+class unordered_map
+{
+public:
+	int numOfElements, capacity;
+	node<T> **arr; 
+
+	unordered_map() 
+	{
+		this->capacity = 1;
+		this->numOfElements = 0;
+		this->arr = new node<T> *[this->capacity];
+		this->arr[0] = NULL;
+	}
+
+	int hashFunction(string key) 
+	{
+		int bucketIndex;
+		ll sum = 0, factor = 31;
+		for (int i = 0; i < key.size(); i++)
+		{
+			
+			
+			sum = ((sum % this->capacity) + ((int(key[i])) * factor) % this->capacity) % this->capacity;
+			factor = ((factor % INT16_MAX) * (31 % INT16_MAX)) % INT16_MAX;
+		}
+
+		bucketIndex = sum;
+		return bucketIndex;
+	}
+
+	float getLoadFactor()
+	{
+		
+		return (float)(this->numOfElements + 1) / (float)(this->capacity);
+	}
+
+	void rehashing()
+	{
+		int oldCapacity = this->capacity;
+		node<T> **temp = this->arr; 
+
+		this->capacity = oldCapacity * 2; 
+		this->arr = new node<T> *[this->capacity]; 
+
+		for (int i = 0; i < this->capacity; i++)
+		{
+			arr[i] = NULL;
+		}
+		for (int i = 0; i < oldCapacity; i++) 
+		{
+			node<T> *currBucketHead = temp[i];
+			while (currBucketHead != NULL) 
+			{
+				this->insert(currBucketHead->key, currBucketHead->value); 
+				currBucketHead = currBucketHead->next;
+			}
+		}
+		delete[] temp; 
+		return;
+	}
+
+	void insert(string key, T value)
+	{
+		while (this->getLoadFactor() > 0.5f) 
+		{
+			this->rehashing();
+		}
+
+		int bucketIndex = this->hashFunction(key);
+		if (this->arr[bucketIndex] == NULL) 
+		{
+			node<T> *newNode = new node<T>(key, value);
+			arr[bucketIndex] = newNode;
+		}
+		else 
+		{
+			node<T> *newNode = new node<T>(key, value);
+			newNode->next = this->arr[bucketIndex];
+			this->arr[bucketIndex] = newNode;
+		}
+		return;
+	}
+
+	int search(string key)
+	{
+		int bucketIndex = this->hashFunction(key); 
+		node<T> *bucketHead = this->arr[bucketIndex];
+		while (bucketHead != NULL) 
+		{
+			if (bucketHead->key == key)
+			{
+				return bucketHead->value;
+			}
+			bucketHead = bucketHead->next; 
+		}
+		cout << "Oops!! Data not found." << endl; 
+		return -1;
+	}
+};
+
 int main()
 {
+	unordered_map<int> mp; 
+	mp.insert("Manish", 16);
+	mp.insert("Vartika", 14);
+	mp.insert("ITT", 5);
+	mp.insert("elite_Programmer", 4);
+	mp.insert("pluto14", 14);
+	mp.insert("abcd", 11);
+	
+	cout << "Value of abcd : " << mp.search("abcd") << endl;
+	cout << "Value of ITT : " << mp.search("ITT") << endl;
+	cout << "Value of Manish : " << mp.search("Manish") << endl;
+	cout << "Value of Vartika : " << mp.search("Vartika") << endl;
+	cout << "Value of elite_Programmer : " << mp.search("elite_Programmer") << endl;
+	cout << "Value of pluto14 : " << mp.search("pluto14") << endl;
+		
+		
+	mp.search("GFG"); 
 
-  int a[] = {15, 11, 27, 8, 12};
-  int n = sizeof(a)/sizeof(a[0]);
- 
-  Hash h(7);   
-  for (int i = 0; i < n; i++)
-    h.insertItem(a[i]); 
- 
-  h.deleteItem(12);
-  h.displayHash();
- 
-  return 0;
+	return 0;
 }
